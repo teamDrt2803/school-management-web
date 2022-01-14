@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/cms/node_modules
 /.pnp
 .pnp.js
 
@@ -35,3 +36,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# custom files
+/ignores
