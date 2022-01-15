@@ -17,9 +17,13 @@ const AuthDrawer = styled(StyledDrawer)`
 `;
 
 const AuthDrawerContent = styled.div`
-    min-width: 700px;
-    max-width: 700px;
+    min-width: 500px;
+    max-width: 500px;
     background-color: white;
+    overflow-y: scroll;
+    .MuiOutlinedInput-input {
+        font-size: 0.875rem;
+    }
 `;
 
 function AuhtDrawerComp() {

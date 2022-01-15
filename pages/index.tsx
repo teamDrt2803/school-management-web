@@ -1,15 +1,15 @@
-import { Button, Grid, IconButton } from '@mui/material'
+import { Grid, IconButton } from '@mui/material'
 import type { NextPage } from 'next'
 import React from 'react'
 import { auth, initializeFirebase } from '../firebase/clientApp'
-import { SelectDrawerState, SelectIsUserAuthenticated } from '../redux/features/auth/selector'
+import { SelectIsUserAuthenticated } from '../redux/features/auth/selector'
 import { authActions, login, logout } from '../redux/features/auth/slice'
 import { useAppDispatch, useAppSelector } from '../redux/hooks'
 import { AuthDrawer } from '../shared-components/Drawer/auth'
 import { Header } from '../shared-components/header'
 import { AuthButton } from '../shared-components/styled-buttons'
-import { Persistence } from "firebase/auth";
 import { Logout } from '@mui/icons-material'
+import ToastAlert from '../shared-components/ToastAlert'
 
 
 const LandingPage: NextPage = () => {
@@ -62,6 +62,7 @@ const LandingPage: NextPage = () => {
   return (
     <div>
       <AuthDrawer />
+      <ToastAlert />
       <Header container>
         <Grid item xs={authenticated ? 11 : 10}>
         </Grid>

@@ -1,4 +1,3 @@
-import { FirebaseError } from "@firebase/app";
 import {
   createAsyncThunk,
   createSlice,
@@ -9,19 +8,15 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
-  getRedirectResult,
-  signInWithRedirect,
   GoogleAuthProvider,
-  AuthError,
   signInWithPopup,
-  getAuth,
 } from "firebase/auth";
-import { getApp } from "firebase/app";
 import { auth } from "../../../firebase/clientApp";
 import {
   LoginFormData,
   RegisterFormData,
 } from "../../../shared-components/Drawer/auth/types";
+import { ToastProps } from "../../../shared-components/ToastAlert/types";
 
 type DrawerProps = {
   isOpen: boolean;
@@ -40,6 +35,7 @@ type AuthState = {
 type InittialStateProps = {
   authDrawer: DrawerProps;
   authState: AuthState | null;
+  authToast: ToastProps;
 };
 
 export const initialState: InittialStateProps = {
@@ -53,6 +49,11 @@ export const initialState: InittialStateProps = {
     authenticated: undefined,
     error: undefined,
     loading: false,
+  },
+  authToast: {
+    showToast: false,
+    toastMessage: "",
+    toastType: "info",
   },
 };
 
@@ -86,7 +87,15 @@ export const login = createAsyncThunk<AuthState, LoginPayload>(
         return { displayName, email, uid } as LoginPayload;
       }
     } catch (error: any) {
-      return thunkAPI.rejectWithValue({ error: error.message });
+      console.log(
+        error,
+        Object.values(error),
+        Object.keys(error),
+        error.message
+      );
+      return thunkAPI.rejectWithValue({
+        error: error.code.replace("auth/", ""),
+      });
     }
   }
 );
@@ -104,7 +113,9 @@ export const loginWithGoogle = createAsyncThunk(
       const uid = response?.user?.uid;
       return { displayName, email, uid } as LoginPayload;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue({ error: error.message });
+      return thunkAPI.rejectWithValue({
+        error: error.code.replace("auth/", ""),
+      });
     }
   }
 );
@@ -131,7 +142,9 @@ export const signUp = createAsyncThunk<AuthState, RegisterPayload>(
         uid,
       } as RegisterPayload;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue({ error: error.message });
+      return thunkAPI.rejectWithValue({
+        error: error.code.replace("auth/", ""),
+      });
     }
   }
 );
@@ -140,9 +153,20 @@ export const logout = createAsyncThunk("logout", async (_, thunkAPI) => {
   try {
     await auth.signOut();
   } catch (error: any) {
-    return thunkAPI.rejectWithValue({ error: error.message });
+    return thunkAPI.rejectWithValue({
+      error: error.code.replace("auth/", ""),
+    });
   }
 });
+
+const getErrorFromCode = (code: string): string => {
+  switch (code) {
+    case "too-many-requests":
+      return "You have tried too many times. Please try again after some time.";
+    default:
+      return "Error occurred";
+  }
+};
 const slice = createSlice({
   name: "Auth",
   initialState: initialState,
@@ -153,6 +177,9 @@ const slice = createSlice({
     closeAuthDrawer(state) {
       state.authDrawer.isOpen = false;
       state.authDrawer.type = "NONE";
+    },
+    closeToast(state) {
+      state.authToast.showToast = false;
     },
   },
   extraReducers: (builder) => {
@@ -169,6 +196,11 @@ const slice = createSlice({
           loading: false,
         };
         state.authDrawer = initialState.authDrawer;
+        state.authToast = {
+          toastType: "success",
+          toastMessage: "Logged in successfully",
+          showToast: true,
+        };
       })
       .addCase(login.pending, (state) => {
         state.authState = {
@@ -176,11 +208,16 @@ const slice = createSlice({
           loading: true,
         };
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(login.rejected, (state, action: PayloadAction<any>) => {
         state.authState = {
           ...initialState.authState,
-          error: action.error,
+          error: action.payload,
           loading: false,
+        };
+        state.authToast = {
+          toastType: "error",
+          toastMessage: getErrorFromCode(action.payload.error),
+          showToast: true,
         };
       })
       .addCase(signUp.fulfilled, (state, action) => {
@@ -202,11 +239,16 @@ const slice = createSlice({
           loading: true,
         };
       })
-      .addCase(signUp.rejected, (state, action) => {
+      .addCase(signUp.rejected, (state, action: PayloadAction<any>) => {
         state.authState = {
           ...initialState.authState,
-          error: action.error,
+          error: action.payload,
           loading: false,
+        };
+        state.authToast = {
+          toastType: "error",
+          toastMessage: getErrorFromCode(action.payload.error),
+          showToast: true,
         };
       })
       .addCase(loginWithGoogle.fulfilled, (state, action) => {
@@ -228,13 +270,21 @@ const slice = createSlice({
           loading: true,
         };
       })
-      .addCase(loginWithGoogle.rejected, (state, action) => {
-        state.authState = {
-          ...initialState.authState,
-          error: action.error,
-          loading: false,
-        };
-      })
+      .addCase(
+        loginWithGoogle.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.authState = {
+            ...initialState.authState,
+            error: action.payload,
+            loading: false,
+          };
+          state.authToast = {
+            toastType: "error",
+            toastMessage: getErrorFromCode(action.payload.error),
+            showToast: true,
+          };
+        }
+      )
       .addCase(logout.pending, (state) => {
         state.authState = {
           ...state.authState,

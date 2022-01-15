@@ -18,3 +18,8 @@ export const SelectAuthStateLoader = createSelector(
   [selectSlice],
   (state) => state.authState?.loading
 );
+
+export const selectToastInfo = createSelector(
+  [selectSlice],
+  (state) => state.authToast,
+);

@@ -2,18 +2,17 @@ import { CircularProgress, Grid, IconButton, InputAdornment, TextField, Typograp
 import { useState } from "react";
 import { authActions, loginWithGoogle, signUp } from "../../../redux/features/auth/slice";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
-import { AuthButton, SignInButton, SignInButtonApple, SignInButtonGoogle } from "../../styled-buttons";
-import { Apple, VisibilityOffOutlined, VisibilityOutlined } from "@mui/icons-material";
+import { AuthButton, SignInButton, SignInButtonGoogle } from "../../styled-buttons";
+import { VisibilityOffOutlined, VisibilityOutlined } from "@mui/icons-material";
 import { GoogleLogo } from "../../svg/components/google-colored";
 import { StyledForm } from "../../Form";
 import { useForm } from "react-hook-form";
-import { LoginFormData, RegisterFormData } from "./types";
+import { RegisterFormData } from "./types";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { registerValidationSchema } from "./resolvers";
 import { ErrorText } from "../../Typography/error-text";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../firebase/clientApp";
 import { SelectAuthStateLoader } from "../../../redux/features/auth/selector";
+import { InputLabel } from "../../inputlabel";
 
 export default function RegisterDrawer() {
     const {
@@ -26,7 +25,6 @@ export default function RegisterDrawer() {
     });
 
     const dispatch = useAppDispatch();
-
     const [showPassword, togglePasswordVisibility] = useState(false);
 
     const openLoginDrawer = () => {
@@ -42,21 +40,19 @@ export default function RegisterDrawer() {
     const handleClickShowPassword = () => togglePasswordVisibility(!showPassword);
     const handleMouseDownPassword = (event: any) => event.preventDefault();
     const submitForm = async (data: RegisterFormData) => dispatch(signUp(data));
-    const singInWithGoogle = () => dispatch(loginWithGoogle());
     const loader = useAppSelector(SelectAuthStateLoader) || false;
+    const signInWithGoogle = () => dispatch(loginWithGoogle());
 
     return (
-        <StyledForm onSubmit={handleSubmit(submitForm, errors => {
-            console.log(errors);
-        })}>
-            <Grid container px={16} spacing={4}>
+        <StyledForm onSubmit={handleSubmit(submitForm)}>
+            <Grid container px={8} spacing={2}>
                 <Grid item xs={12}>
-                    <Typography align="center" variant="h5" noWrap style={{
+                    <Typography align="center" variant="h6" noWrap style={{
                         fontWeight: 'bold'
                     }}>
                         Sign Up
                     </Typography>
-                    <Typography align="center" noWrap>
+                    <Typography align="center" noWrap variant="subtitle2">
                         {"Don't have an account?"}
                         <AuthButton bold variant='text' onClick={openLoginDrawer}>
                             Sign In
@@ -64,21 +60,21 @@ export default function RegisterDrawer() {
                     </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                    <Typography>User Name</Typography>
+                    <InputLabel label="User Name" />
                     <TextField variant='outlined' fullWidth {...register('displayName')} />
                     <ErrorText>
                         {errors?.displayName?.message}
                     </ErrorText>
                 </Grid>
                 <Grid item xs={12}>
-                    <Typography>Email</Typography>
+                    <InputLabel label="Email" />
                     <TextField variant='outlined' fullWidth {...register('email')} />
                     <ErrorText>
                         {errors?.email?.message}
                     </ErrorText>
                 </Grid>
                 <Grid item xs={12}>
-                    <Typography>Password</Typography>
+                    <InputLabel label="Password" />
                     <TextField
                         {...register('password')}
                         fullWidth
@@ -104,7 +100,7 @@ export default function RegisterDrawer() {
                     </ErrorText>
                 </Grid>
                 <Grid item xs={12}>
-                    <Typography>Password</Typography>
+                    <InputLabel label="Confirm Password" />
                     <TextField
                         {...register('confirmPassword')}
                         fullWidth
@@ -131,31 +127,25 @@ export default function RegisterDrawer() {
                 </Grid>
                 <Grid item xs={12}>
                     <SignInButton variant="contained" type="submit" fullWidth disabled={!isValid || loader}>
-                        {loader ? <CircularProgress size={25} /> : 'Create Account'}
+                        {loader ? <CircularProgress size={25} /> :
+                            <InputLabel label="Sign IN" />
+                        }
                     </SignInButton>
                 </Grid>
                 <Grid item xs={12} container justifyContent={'center'}>
-                    OR
+                    <InputLabel label="OR" />
                 </Grid>
                 <Grid item xs={12} container justifyContent={'center'} spacing={2}>
                     <Grid item xs={12}>
                         <SignInButtonGoogle fullWidth style={{
-                        }} variant="contained" onClick={singInWithGoogle}>
-                            <GoogleLogo height={"1.5em"} width={"1.5em"} />
-                            Continue with Google
+                        }} variant="contained" onClick={signInWithGoogle}>
+                            <GoogleLogo height={"1.2em"} width={"1.2em"} />
+                            <InputLabel label="Continue with Google" />
                         </SignInButtonGoogle>
                     </Grid>
-                    {/* <Grid item xs={6}>
-                        <SignInButtonApple fullWidth variant="contained">
-                            <Apple />
-                        </SignInButtonApple>
-                    </Grid> */}
                 </Grid>
                 <Grid item xs={12} container alignContent={'center'}>
-                    <Typography align="center" alignSelf={'center'}>
-                        {`By continuing, you agree to accept our 
-            Privacy Policy & Terms of Service.`}
-                    </Typography>
+                    <InputLabel label={`By continuing, you agree to accept our Privacy Policy & Terms of Service.`} align='center' />
                 </Grid>
             </Grid>
         </StyledForm>
